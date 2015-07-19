@@ -1,0 +1,504 @@
+
+
+
+
+DISPATCH                                                 R. Ravindranath
+Internet-Draft                                                  T. Reddy
+Intended status: Standards Track                                   Cisco
+Expires: January 20, 2016                                  July 19, 2015
+
+
+Requirements for recording in Privacy Based RTP conferencing environment
+                draft-ram-dispatch-perc-recording-reqts
+
+Abstract
+
+   Session recording is a critical requirement in many business
+   communications environments, such as call centers and financial
+   trading floors.  In some of these environments, all calls must be
+   recorded for regulatory and compliance reasons.  In others, calls may
+   be recorded for quality control or business analytics.
+
+   Recording is typically performed by sending a copy of the session
+   media to the recording devices.  This document defines requirements
+   for recording in Privacy Based RTP conferencing environment.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on January 20, 2016.
+
+Copyright Notice
+
+   Copyright (c) 2015 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+
+
+
+Ravindranath & Reddy    Expires January 20, 2016                [Page 1]
+
+Internet-Draft      Requirement for recording in PERC          July 2015
+
+
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  Use-cases for recording . . . . . . . . . . . . . . . . . . .   4
+     3.1.  Use-case 1: Conference mixer acting as SRC  . . . . . . .   4
+     3.2.  Use-case 2: Endpoint acting as SRC  . . . . . . . . . . .   5
+   4.  Requirements for recording  . . . . . . . . . . . . . . . . .   7
+   5.  Security Considerations . . . . . . . . . . . . . . . . . . .   7
+   6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   8
+   7.  Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .   8
+   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   8
+     8.1.  Normative References  . . . . . . . . . . . . . . . . . .   8
+     8.2.  Informative References  . . . . . . . . . . . . . . . . .   8
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   9
+
+1.  Introduction
+
+   Session recording is a critical operational requirement in many
+   businesses, especially where voice is used as a medium for commerce
+   and customer support.  A prime example where voice is used for trade
+   is the financial industry.  The call recording requirements in this
+   industry are quite stringent.  The recorded calls are used for
+   dispute resolution and compliance.  Other businesses, such as
+   customer support call centers, typically employ call recording for
+   quality control or business analytics, with different requirements.
+
+   While recording is critical operation in many businesses, respecting
+   the privacy rights and wishes of users engaged in a call is of
+   paramount importance.  In many jurisdictions, participants have a
+   right to know that the session is being recorded or might be
+   recorded, and they have a right to opt out, either by terminating the
+   call or by demanding that the call not be recorded.  SIPREC work in
+   IETF standardises Session Initiation Protocol(SIP) based protocol
+   based recording where in the participants are notified of the
+   recording and have the flexibility to opt out of recording.  SIPREC
+   work describes mechanisms to record both secure and non-secure media.
+   Among the different architectures SIPREC supports, conference
+   recording is one of them.
+
+   There is a trend in the industry for enterprises to use cloud
+   services to host multi-party conferences and meet-me services, either
+   exclusively or to meet peak loads on-demand.  The increased use of
+
+
+
+Ravindranath & Reddy    Expires January 20, 2016                [Page 2]
+
+Internet-Draft      Requirement for recording in PERC          July 2015
+
+
+   cloud services has exposed a problem.  There are two different trust
+   domains from a media perspective: endpoints and other devices in a
+   trusted domain, and conference servers controlled by the cloud
+   service in an untrusted domain.
+   [I-D.jones-avtcore-private-media-reqts] describes the requirements
+   for ensuring the privacy and integrity of real-time media flows
+   between two or more endpoints communicating in a switched
+   conferencing environment.  The architecture suggested in
+   [I-D.jones-avtcore-private-media-reqts] enables switching conference
+   servers to be hosted in domains in which the network elements may
+   have low trust by means of having dual-key model for media where in
+   the media headers (like RTP/RTCP) is encrypted using one pair of keys
+   and the media payload is encrypted using a different pair of keys.
+   This document describes requirements for recording in such a
+   architecture.
+
+2.  Terminology
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC2119].
+
+   All of the pertinent terminology and taxonomy used in this document
+   is based on [I-D.jones-avtcore-private-media-reqts].
+
+   In addition, this document uses the following terminology extending
+   it from [RFC6341]:
+
+      Session Recording Server (SRS): A Session Recording Server (SRS)
+      is a SIP User Agent (UA) or webRTC endpoint
+      [I-D.ietf-rtcweb-overview] or a webRTC Gateway
+      [I-D.ietf-rtcweb-gateways] that is a specialized media server or
+      collector that acts as the sink of the recorded media.  An SRS is
+      typically implemented as a multi-port device that is capable of
+      receiving media from multiple sources simultaneously.  An SRS is
+      the sink of the recorded session metadata.
+
+      Session Recording Client (SRC): A Session Recording Client (SRC)
+      is a SIP User Agent (UA) or webRTC endpoint
+      [I-D.ietf-rtcweb-overview] or a webRTC Gateway
+      [I-D.ietf-rtcweb-gateways] that acts as the source of the recorded
+      media, sending it to the SRS.  An SRC is a logical function.  Its
+      capabilities may be implemented across one or more physical
+      devices.  The SRC provides metadata to the SRS.
+
+      Communication Session (CS): A session created between two or more
+      SIP User Agents (UAs) or webRTC endpoints or between webRTC
+      endpoint and a webRTC Gateway that is the subject of recording.
+
+
+
+Ravindranath & Reddy    Expires January 20, 2016                [Page 3]
+
+Internet-Draft      Requirement for recording in PERC          July 2015
+
+
+      Recording Session (RS): The session created between an SRC and SRS
+      for the purpose of recording a Communication Session.  This could
+      be a SIP Session or a webRTC session.
+
+      Metadata: Information that describes recorded media and the CS to
+      which they relate.
+
+3.  Use-cases for recording
+
+3.1.  Use-case 1: Conference mixer acting as SRC
+
+
+                                User 1
+                            +-----------+              +----------------+
+                            |           |              |   KMS          |
+                            |           |              |                |
+                            |Participant|              |                |
+                            |     1     |              |                |
+                            |           |              +----------------+
+                            +-----------+                     ^
+                                ^ ^                           |
+                           SRTP | |                           |
+                    dual-keys   | | Signaling                 |
+       User 2                   V V       Recording           v
+    +-----------+           +-----------+  Session     *************
+    |           |(dual-keys)|           |<------------>*           *
+    |           |<-- SRTP ->| PERC      |<-SRTP->      *           *
+    |Participant|<--------->| Mixer     |<-SRTP->      * Recording *
+    |     2     |  Sig      |  (SRC)    |<-SRTP->      *  Server   *
+    |           |  naling   |           |              *  (SRS)    *
+    +-----------+           +-----------+              *************
+                                 ^ ^
+                                 | |
+                            SRTP | | Signaling
+                    (dual-keys)  | |
+                                 V V
+                            +-----------+
+                            |           |
+                            |           |
+                            |Participant|
+                            |    3      |
+                            |           |
+                            +-----------+
+                               User 3
+
+
+
+       Figure 1: Privacy Enhanced RTP Conference mixer acting as SRC
+
+
+
+Ravindranath & Reddy    Expires January 20, 2016                [Page 4]
+
+Internet-Draft      Requirement for recording in PERC          July 2015
+
+
+   In this use-case, a Privacy Enhanced RTP conference mixer is acting
+   as SRC and recording media to a SRS.  The recording Session between
+   SRC and SRS is setup and media is forking to SRS.  This model brings
+   in requirements like authorizing PERC mixer(SRC) to fork the media,
+   authorizing a SRS before it can get access to keys to playback the
+   recording, getting consent from participants for recording, notifying
+   participants of the recording.
+
+   TBD DISCUSS: SIPREC defines a mechanism to notify SIP endpoints that
+   the call is being recorded in section 7.3 of
+   [I-D.ietf-siprec-protocol] and this is done in the SIP dialog.
+   However no such mechanism exist to notify recording for webRTC calls.
+   Since webRTC endpoints use SDP, technically we could re-use the
+   semantics defined in section 7.3 SIPREC protocol
+   [I-D.ietf-siprec-protocol]  but the model for webRTC call recording
+   needs to be described some where.  The same goes for other aspects of
+   recording like indicating metadata, participant preference to record.
+
+   TBD: Should the Recording Session between SRC and SRS be a SIP dialog
+   (like SIPREC) only or can it be even a HTTP(webRTC) call or any other
+   control channel ?
+
+3.2.  Use-case 2: Endpoint acting as SRC
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Ravindranath & Reddy    Expires January 20, 2016                [Page 5]
+
+Internet-Draft      Requirement for recording in PERC          July 2015
+
+
+                             User 1
+                            +-----------+              +----------------+
+                            |           |              |   KMS          |
+                            |           |              |                |
+                            |Participant|              |                |
+                            |     1     |              |                |
+                            |           |              +----------------+
+                            +-----------+                     ^
+                                ^ ^Signaling                  |
+                           SRTP | |                           |
+                    (Dual-keys) | |                           |
+       User 2                   V V                           |
+    +-----------+           +-----------+                     |
+    |           |           |           |                     |
+    |           |<--SRTP -->| PERC      |                     |
+    |Participant|<--------->| Mixer     |                     |
+    |     2     |  Sig      |           |                     |
+    |           |  naling   |           |                     |
+    +-----------+           +-----------+                     |
+                                 ^ ^                          |
+                                 | |                          |
+                            SRTP | |                          |
+                    (dual-keys)  | | Signaling                |
+                                 V V                          v
+                            +-----------+  Session     *************
+                            |           |<------------>*           *
+                            |Participant|<-SRTP 1    ->*           *
+                            | 3         |<-SRTP 2    ->* Recording *
+                            |           |<-SRTP 3    ->*  Server   *
+                            |           |              *           *
+                            +-----------+              *************
+                              User 3
+
+   Figure 2: An endpoint in Privacy Enhanced RTP Conference mixer acting
+                                  as SRC
+
+   One of the endpoint in the conference is acting as SRC and recording
+   media to a SRS.  The endpoint could be SIP UA or WebRTC endpoint, a
+   SIP B2BUA or a webRTC Gateway.  The recording Session between SRC and
+   SRS is setup and media is forking to SRS.  This model brings in
+   requirements like authorizing the endpoint in the conference to fork
+   the media, authorizing a SRS before it can get access to keys to
+   playback the recording, getting consent from participants for
+   recording, notifying participants of the recording.
+
+
+
+
+
+
+
+Ravindranath & Reddy    Expires January 20, 2016                [Page 6]
+
+Internet-Draft      Requirement for recording in PERC          July 2015
+
+
+4.  Requirements for recording
+
+   This section defines requirements for recording in a PERC
+   environment.  It considers the use-cases mentioned in section 3 of
+   this draft.
+
+      REQ1: The mechanism MUST support the ability to have only
+      authorized participants act as SRC and setup a Recording Session
+      with SRS.
+
+      REQ2: The mechanism MUST provide a way for metadata to be conveyed
+      to the SRS incrementally in the Recording Session (if we are using
+      SIP dialog in RS, this is already taken care by SIPREC protocol).
+
+      REQ3: The mechanism MUST include a means for ensuring the
+      confidentiality of the metadata sent from the SRC to the SRS.
+
+      REQ4: The mechanism MUST provide a means of indicating to
+      participants whether recording is taking place, for appropriate
+      rendering at the user interface.
+
+      REQ5: The mechanism MUST include a means for ensuring that the
+      integrity and confidentiality of the media sent from the SRC to
+      the SRS
+
+      REQ6: The mechanism MUST provide a means to have a SRS authorize
+      itself with the KMS and get the keys needed to play back the
+      recording.
+
+      REQ 7: The mechanism MUST provide a means to have participants in
+      the conference indicate their recording preference.
+
+5.  Security Considerations
+
+   Session recording has substantial security implications, for the
+   endpoints being recorded, the SRC, and the SRS.
+
+   For the endpoints involved in the conference, the requirements in
+   this document enable the endpoint to identify that a conference is
+   being recorded and to request that a given conference not be subject
+   to recording.
+
+   With regard to security implications of the protocol(s), clearly
+   there is a need for authentication, authorization, and eavesdropping
+   protection for the solution.  The SRC needs to know the SRS it is
+   communicating with is legitimate, and vice versa, even if they are in
+   different domains.  Both the signaling and media for the Recording
+   Session need the ability to be authenticated and protected from
+
+
+
+Ravindranath & Reddy    Expires January 20, 2016                [Page 7]
+
+Internet-Draft      Requirement for recording in PERC          July 2015
+
+
+   eavesdropping.  Also the SRC needs to be authorized to record the
+   conversation.  SRS needs to authenticate itself with KMS before it
+   can access the recordings.  All these Requirements are detailed in
+   the section 4 of this document.
+
+6.  IANA Considerations
+
+   This document makes no request of IANA.
+
+7.  Acknowledgments
+
+   Lot of text for this document was taken from SIPREC Requirement RFC.
+
+8.  References
+
+8.1.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <http://www.rfc-editor.org/info/rfc2119>.
+
+8.2.  Informative References
+
+   [I-D.ietf-rtcweb-gateways]
+              Alvestrand, H. and U. Rauschenbach, "WebRTC Gateways",
+              draft-ietf-rtcweb-gateways-01 (work in progress), July
+              2015.
+
+   [I-D.ietf-rtcweb-overview]
+              Alvestrand, H., "Overview: Real Time Protocols for
+              Browser-based Applications", draft-ietf-rtcweb-overview-14
+              (work in progress), June 2015.
+
+   [I-D.ietf-siprec-protocol]
+              Portman, L., Lum, H., Eckel, C., Johnston, A., and A.
+              Hutton, "Session Recording Protocol", draft-ietf-siprec-
+              protocol-17 (work in progress), July 2015.
+
+   [I-D.jones-avtcore-private-media-reqts]
+              Jones, P., Ismail, N., Benham, D., Buckles, N., Mattsson,
+              J., Cheng, Y., and R. Barnes, "Requirements for Private
+              Media in a Switched Conferencing Environment", draft-
+              jones-avtcore-private-media-reqts-01 (work in progress),
+              March 2015.
+
+
+
+
+
+
+Ravindranath & Reddy    Expires January 20, 2016                [Page 8]
+
+Internet-Draft      Requirement for recording in PERC          July 2015
+
+
+   [RFC6341]  Rehor, K., Ed., Portman, L., Ed., Hutton, A., and R. Jain,
+              "Use Cases and Requirements for SIP-Based Media Recording
+              (SIPREC)", RFC 6341, DOI 10.17487/RFC6341, August 2011,
+              <http://www.rfc-editor.org/info/rfc6341>.
+
+Authors' Addresses
+
+   Ram Mohan Ravindranath
+   Cisco
+   Cessna Business Park
+   Sarjapur-Marathahalli Outer Ring Road
+   Bangalore, Karnataka  560103
+   India
+
+   Email: rmohanr@cisco.com
+
+
+   Tirumaleswar Reddy
+   Cisco
+   Cessna Business Park, Varthur Hobli
+   Sarjapur Marathalli Outer Ring Road
+   Bangalore, Karnataka  560103
+   India
+
+   Email: tireddy@cisco.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Ravindranath & Reddy    Expires January 20, 2016                [Page 9]
